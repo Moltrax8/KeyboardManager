@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <optional>
 #include <unordered_set>
 #include <utility>
 
@@ -27,14 +28,17 @@ const char* actionTypeName(const ActionType type) {
     return "sound";
 }
 
-ActionType parseActionType(const std::string& value) {
+std::optional<ActionType> parseActionType(const std::string& value) {
+    if (value == "sound") {
+        return ActionType::PlaySound;
+    }
     if (value == "launch") {
         return ActionType::LaunchFile;
     }
     if (value == "key") {
         return ActionType::SendKey;
     }
-    return ActionType::PlaySound;
+    return std::nullopt;
 }
 
 Json serialize(const Settings& settings) {
@@ -115,8 +119,13 @@ Settings deserialize(const Json& root) {
                             if (!actionJson.is_object()) {
                                 continue;
                             }
+                            const auto type = parseActionType(
+                                actionJson.value("type", std::string{"sound"}));
+                            if (!type.has_value()) {
+                                continue;
+                            }
                             Action action;
-                            action.type = parseActionType(actionJson.value("type", std::string{"sound"}));
+                            action.type = *type;
                             action.path = fromUtf8(actionJson.value("path", std::string{}));
                             action.virtualKey = static_cast<std::uint16_t>(
                                 std::min(actionJson.value("virtualKey", 0U), 0xFFFFU));
@@ -169,6 +178,12 @@ Settings ConfigStore::load() const {
     try {
         Json root;
         stream >> root;
+        const int version = root.value("version", 1);
+        if (version != 1) {
+            report(L"Configuration version is unsupported; saving is disabled.");
+            saveEnabled_ = false;
+            return {};
+        }
         return deserialize(root);
     } catch (const std::exception& error) {
         report(L"Configuration load failed: " + fromUtf8(error.what()));
