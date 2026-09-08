@@ -32,6 +32,7 @@ public:
     [[nodiscard]] bool selectDevice(const std::string& stableId,
                                     const std::string& fallbackName) noexcept;
     void refreshDevices() noexcept;
+    [[nodiscard]] bool reloadSoundFiles() noexcept;
     [[nodiscard]] bool play(const std::filesystem::path& path) noexcept;
 
 private:

@@ -96,13 +96,37 @@ bool App::initialize() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     ImGui::StyleColorsDark();
     ImGuiStyle& style = ImGui::GetStyle();
-    style.WindowRounding = 8.0F;
-    style.FrameRounding = 5.0F;
-    style.GrabRounding = 5.0F;
-    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.055F, 0.065F, 0.085F, 1.0F);
-    style.Colors[ImGuiCol_Header] = ImVec4(0.13F, 0.34F, 0.34F, 1.0F);
-    style.Colors[ImGuiCol_Button] = ImVec4(0.12F, 0.16F, 0.20F, 1.0F);
-    style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.18F, 0.42F, 0.42F, 1.0F);
+    style.WindowPadding = ImVec2(22.0F, 18.0F);
+    style.FramePadding = ImVec2(10.0F, 7.0F);
+    style.CellPadding = ImVec2(10.0F, 7.0F);
+    style.ItemSpacing = ImVec2(10.0F, 9.0F);
+    style.ItemInnerSpacing = ImVec2(7.0F, 5.0F);
+    style.WindowRounding = 0.0F;
+    style.ChildRounding = 10.0F;
+    style.FrameRounding = 7.0F;
+    style.PopupRounding = 8.0F;
+    style.ScrollbarRounding = 9.0F;
+    style.GrabRounding = 7.0F;
+    style.FrameBorderSize = 1.0F;
+    style.ChildBorderSize = 1.0F;
+    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.035F, 0.043F, 0.059F, 1.0F);
+    style.Colors[ImGuiCol_ChildBg] = ImVec4(0.055F, 0.067F, 0.087F, 1.0F);
+    style.Colors[ImGuiCol_PopupBg] = ImVec4(0.050F, 0.061F, 0.080F, 1.0F);
+    style.Colors[ImGuiCol_Border] = ImVec4(0.15F, 0.19F, 0.24F, 1.0F);
+    style.Colors[ImGuiCol_FrameBg] = ImVec4(0.075F, 0.092F, 0.119F, 1.0F);
+    style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.10F, 0.14F, 0.18F, 1.0F);
+    style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.12F, 0.18F, 0.22F, 1.0F);
+    style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.035F, 0.043F, 0.059F, 1.0F);
+    style.Colors[ImGuiCol_Header] = ImVec4(0.08F, 0.35F, 0.34F, 1.0F);
+    style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.10F, 0.46F, 0.43F, 1.0F);
+    style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.11F, 0.54F, 0.49F, 1.0F);
+    style.Colors[ImGuiCol_Button] = ImVec4(0.075F, 0.11F, 0.14F, 1.0F);
+    style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.09F, 0.39F, 0.37F, 1.0F);
+    style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.10F, 0.49F, 0.45F, 1.0F);
+    style.Colors[ImGuiCol_CheckMark] = ImVec4(0.25F, 0.88F, 0.72F, 1.0F);
+    style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.18F, 0.66F, 0.58F, 1.0F);
+    style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.27F, 0.86F, 0.70F, 1.0F);
+    style.Colors[ImGuiCol_Separator] = ImVec4(0.13F, 0.18F, 0.22F, 1.0F);
 
     if (!ImGui_ImplWin32_Init(window_) || !ImGui_ImplDX9_Init(device_.Get())) {
         logMessage(L"Dear ImGui backend initialization failed.");
@@ -349,69 +373,144 @@ void App::renderControls() {
     ImGui::SetNextWindowPos(viewport->WorkPos);
     ImGui::SetNextWindowSize(viewport->WorkSize);
     ImGui::Begin("KeyboardManager", nullptr,
-                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
-                     ImGuiWindowFlags_NoSavedSettings);
+                  ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
+                      ImGuiWindowFlags_NoSavedSettings);
 
-    ImGui::TextUnformatted("KEYBOARD MANAGER");
-    ImGui::SameLine();
-    ImGui::TextColored(bindEngine_.paused() ? ImVec4(1.0F, 0.4F, 0.3F, 1.0F)
-                                           : ImVec4(0.3F, 0.9F, 0.65F, 1.0F),
-                       bindEngine_.paused() ? "PAUSED" : "LISTENING");
-    ImGui::SameLine(ImGui::GetWindowWidth() - 260.0F);
-    if (ImGui::Button(bindEngine_.paused() ? "Resume binds" : "Pause binds")) {
-        bindEngine_.setPaused(!bindEngine_.paused());
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.045F, 0.057F, 0.075F, 1.0F));
+    ImGui::BeginChild("AppHeader", ImVec2(0.0F, 76.0F), ImGuiChildFlags_Borders);
+    if (ImGui::BeginTable("HeaderLayout", 2, ImGuiTableFlags_SizingStretchProp)) {
+        ImGui::TableSetupColumn("Title", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 150.0F);
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ImVec4(0.30F, 0.92F, 0.76F, 1.0F), "KEYBOARD MANAGER");
+        ImGui::TextDisabled("Physical-key automation and soundboard");
+        ImGui::TableNextColumn();
+        ImGui::TextDisabled("ENGINE STATUS");
+        ImGui::TextColored(bindEngine_.paused() ? ImVec4(1.0F, 0.52F, 0.38F, 1.0F)
+                                                : ImVec4(0.30F, 0.92F, 0.68F, 1.0F),
+                           bindEngine_.paused() ? "PAUSED" : "LISTENING");
+        ImGui::EndTable();
     }
-    ImGui::SameLine();
-    if (ImGui::Button("Minimize to tray")) {
-        minimizeToTray();
-    }
+    ImGui::EndChild();
+    ImGui::PopStyleColor();
 
-    ImGui::Separator();
-    const char* sizes[] = {"Full-size (104-key)", "TKL (87-key)", "60%"};
-    ImGui::SetNextItemWidth(190.0F);
-    if (ImGui::Combo("Keyboard Size", &settings_.keyboardSize, sizes, std::size(sizes))) {
-        save();
-    }
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(165.0F);
-    if (ImGui::BeginCombo("Profile", settings_.activeProfile.c_str())) {
-        for (const auto& profile : settings_.profiles) {
-            const bool selected = profile.name == settings_.activeProfile;
-            if (ImGui::Selectable(profile.name.c_str(), selected)) {
-                settings_.activeProfile = profile.name;
+    ImGui::Spacing();
+    const int selectedDeviceIndex = audio_.selectedDevice();
+    const bool selectedDeviceValid = selectedDeviceIndex >= 0 &&
+        static_cast<std::size_t>(selectedDeviceIndex) < audio_.devices().size();
+    const std::string selectedDevice = selectedDeviceValid
+                                           ? audio_.devices()[static_cast<std::size_t>(selectedDeviceIndex)].name
+                                           : "System Default";
+
+    ImGui::BeginChild("ControlCenter", ImVec2(0.0F, 190.0F), ImGuiChildFlags_Borders);
+    if (ImGui::BeginTable("ControlGrid", 3,
+                          ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_BordersInnerV)) {
+        ImGui::TableNextColumn();
+        ImGui::TextDisabled("WORKSPACE");
+        ImGui::TextUnformatted("Keyboard layout");
+        const char* sizes[] = {"Full-size (104-key)", "TKL (87-key)", "60%"};
+        ImGui::SetNextItemWidth(-1.0F);
+        if (ImGui::Combo("##KeyboardSize", &settings_.keyboardSize, sizes, std::size(sizes))) {
+            save();
+        }
+        ImGui::TextUnformatted("Active profile");
+        ImGui::SetNextItemWidth(-1.0F);
+        if (ImGui::BeginCombo("##Profile", settings_.activeProfile.c_str())) {
+            for (const auto& profile : settings_.profiles) {
+                const bool selected = profile.name == settings_.activeProfile;
+                if (ImGui::Selectable(profile.name.c_str(), selected)) {
+                    settings_.activeProfile = profile.name;
+                    selectedKey_.reset();
+                    save();
+                }
+            }
+            ImGui::EndCombo();
+        }
+        const float profileButtonWidth =
+            (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5F;
+        if (ImGui::Button("New profile", ImVec2(profileButtonWidth, 0.0F))) {
+            std::memset(newProfileName_, 0, sizeof(newProfileName_));
+            ImGui::OpenPopup("Create profile");
+        }
+        ImGui::SameLine();
+        ImGui::BeginDisabled(settings_.profiles.size() <= 1);
+        if (ImGui::Button("Delete", ImVec2(-1.0F, 0.0F))) {
+            const auto profile = std::find_if(settings_.profiles.begin(), settings_.profiles.end(),
+                                              [this](const Profile& item) {
+                                                  return item.name == settings_.activeProfile;
+                                              });
+            if (profile != settings_.profiles.end()) {
+                settings_.profiles.erase(profile);
+                settings_.activeProfile = settings_.profiles.front().name;
                 selectedKey_.reset();
                 save();
             }
         }
-        ImGui::EndCombo();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("New profile")) {
-        std::memset(newProfileName_, 0, sizeof(newProfileName_));
-        ImGui::OpenPopup("Create profile");
-    }
-    ImGui::SameLine();
-    ImGui::BeginDisabled(settings_.profiles.size() <= 1);
-    if (ImGui::Button("Delete profile")) {
-        const auto profile = std::find_if(settings_.profiles.begin(), settings_.profiles.end(),
-                                          [this](const Profile& item) {
-                                              return item.name == settings_.activeProfile;
-                                          });
-        if (profile != settings_.profiles.end()) {
-            settings_.profiles.erase(profile);
-            settings_.activeProfile = settings_.profiles.front().name;
-            selectedKey_.reset();
+        ImGui::EndDisabled();
+
+        ImGui::TableNextColumn();
+        ImGui::TextDisabled("AUDIO");
+        ImGui::TextUnformatted("Master volume");
+        ImGui::SetNextItemWidth(-1.0F);
+        float volumePercent = settings_.masterVolume * 100.0F;
+        if (ImGui::SliderFloat("##MasterVolume", &volumePercent, 0.0F, 100.0F, "%.0f%%")) {
+            settings_.masterVolume = volumePercent / 100.0F;
+            audio_.setVolume(settings_.masterVolume);
             save();
         }
+        ImGui::TextUnformatted("Output device");
+        ImGui::SetNextItemWidth(-1.0F);
+        if (ImGui::BeginCombo("##OutputDevice", selectedDevice.c_str())) {
+            if (ImGui::Selectable("System Default", audio_.selectedDevice() < 0) && audio_.selectDevice(-1)) {
+                settings_.outputDeviceId.clear();
+                settings_.outputDeviceName.clear();
+                save();
+            }
+            for (std::size_t index = 0; index < audio_.devices().size(); ++index) {
+                const auto& device = audio_.devices()[index];
+                std::string label = device.name + (device.isDefault ? " (default)" : "");
+                if (ImGui::Selectable(label.c_str(), audio_.selectedDevice() == static_cast<int>(index)) &&
+                    audio_.selectDevice(static_cast<int>(index))) {
+                    settings_.outputDeviceId = audio_.selectedDeviceId();
+                    settings_.outputDeviceName = audio_.selectedDeviceName();
+                    save();
+                }
+            }
+            ImGui::EndCombo();
+        }
+        if (ImGui::Button("Refresh output devices", ImVec2(-1.0F, 0.0F))) {
+            const std::string currentId = audio_.selectedDeviceId();
+            const std::string currentName = audio_.selectedDeviceName();
+            audio_.refreshDevices();
+            static_cast<void>(audio_.selectDevice(currentId, currentName));
+            settings_.outputDeviceId = audio_.selectedDeviceId();
+            settings_.outputDeviceName = audio_.selectedDeviceName();
+            save();
+        }
+
+        ImGui::TableNextColumn();
+        ImGui::TextDisabled("SESSION");
+        ImGui::Text("%zu sound%s ready", sounds_.size(), sounds_.size() == 1 ? "" : "s");
+        ImGui::TextDisabled("%zu profile%s available", settings_.profiles.size(),
+                            settings_.profiles.size() == 1 ? "" : "s");
+        if (ImGui::Button(bindEngine_.paused() ? "Resume all binds" : "Pause all binds",
+                          ImVec2(-1.0F, 0.0F))) {
+            bindEngine_.setPaused(!bindEngine_.paused());
+        }
+        if (ImGui::Button("Minimize to tray", ImVec2(-1.0F, 0.0F))) {
+            minimizeToTray();
+        }
+        ImGui::TextWrapped("Ctrl + Alt + P toggles all binds. Physical input always passes through.");
+        ImGui::EndTable();
     }
-    ImGui::EndDisabled();
+    ImGui::EndChild();
 
     if (ImGui::BeginPopupModal("Create profile", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::InputText("Name", newProfileName_, sizeof(newProfileName_));
         const bool duplicate = std::any_of(settings_.profiles.begin(), settings_.profiles.end(),
-                                           [this](const Profile& profile) {
-                                               return profile.name == newProfileName_;
-                                           });
+                                            [this](const Profile& profile) {
+                                                return profile.name == newProfileName_;
+                                            });
         ImGui::BeginDisabled(newProfileName_[0] == '\0' || duplicate);
         if (ImGui::Button("Create")) {
             settings_.profiles.push_back({newProfileName_, {}});
@@ -427,59 +526,15 @@ void App::renderControls() {
         ImGui::EndPopup();
     }
 
-    ImGui::SetNextItemWidth(180.0F);
-    float volumePercent = settings_.masterVolume * 100.0F;
-    if (ImGui::SliderFloat("Master Volume", &volumePercent, 0.0F, 100.0F, "%.0f%%")) {
-        settings_.masterVolume = volumePercent / 100.0F;
-        audio_.setVolume(settings_.masterVolume);
-        save();
-    }
-    ImGui::SameLine();
-    const int selectedDeviceIndex = audio_.selectedDevice();
-    const bool selectedDeviceValid = selectedDeviceIndex >= 0 &&
-        static_cast<std::size_t>(selectedDeviceIndex) < audio_.devices().size();
-    const std::string selectedDevice = selectedDeviceValid
-                                           ? audio_.devices()[static_cast<std::size_t>(selectedDeviceIndex)].name
-                                           : "System Default";
-    ImGui::SetNextItemWidth(260.0F);
-    if (ImGui::BeginCombo("Output Device", selectedDevice.c_str())) {
-        if (ImGui::Selectable("System Default", audio_.selectedDevice() < 0) && audio_.selectDevice(-1)) {
-            settings_.outputDeviceId.clear();
-            settings_.outputDeviceName.clear();
-            save();
-        }
-        for (std::size_t index = 0; index < audio_.devices().size(); ++index) {
-            const auto& device = audio_.devices()[index];
-            std::string label = device.name + (device.isDefault ? " (default)" : "");
-            if (ImGui::Selectable(label.c_str(), audio_.selectedDevice() == static_cast<int>(index)) &&
-                audio_.selectDevice(static_cast<int>(index))) {
-                settings_.outputDeviceId = audio_.selectedDeviceId();
-                settings_.outputDeviceName = audio_.selectedDeviceName();
-                save();
-            }
-        }
-        ImGui::EndCombo();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Refresh devices")) {
-        const std::string currentId = audio_.selectedDeviceId();
-        const std::string currentName = audio_.selectedDeviceName();
-        audio_.refreshDevices();
-        static_cast<void>(audio_.selectDevice(currentId, currentName));
-        settings_.outputDeviceId = audio_.selectedDeviceId();
-        settings_.outputDeviceName = audio_.selectedDeviceName();
-        save();
-    }
-
-    ImGui::TextDisabled("Global kill switch: Ctrl + Alt + P. Raw Input is passive; native keystrokes are never blocked.");
     renderKeyboard();
     renderActionEditor();
     ImGui::End();
 }
 
 void App::renderKeyboard() {
-    ImGui::SeparatorText("Keyboard");
-    ImGui::BeginChild("KeyboardLayout", ImVec2(0, 300), ImGuiChildFlags_Borders,
+    ImGui::SeparatorText("Keyboard canvas");
+    ImGui::TextDisabled("Bound keys are teal. The selected key is amber.");
+    ImGui::BeginChild("KeyboardLayout", ImVec2(0, 260), ImGuiChildFlags_Borders,
                       ImGuiWindowFlags_HorizontalScrollbar);
     constexpr float unit = 44.0F;
     constexpr float keyHeight = 38.0F;
@@ -532,13 +587,14 @@ void App::renderKeyboard() {
 }
 
 void App::renderActionEditor() {
-    ImGui::SeparatorText("Bind Editor");
+    ImGui::SeparatorText("Binding workspace");
     if (!selectedKey_.has_value()) {
         ImGui::TextDisabled("Select a key above to assign one or more actions.");
         return;
     }
 
-    ImGui::Text("Selected: %s", localizedKeyName(*selectedKey_).c_str());
+    ImGui::TextColored(ImVec4(0.98F, 0.67F, 0.28F, 1.0F), "SELECTED KEY  %s",
+                       localizedKeyName(*selectedKey_).c_str());
     ImGui::SameLine();
     modifierCheckbox("Ctrl", ModifierCtrl, selectedModifiers_);
     ImGui::SameLine();
@@ -599,7 +655,12 @@ void App::renderActionEditor() {
     }
     ImGui::EndDisabled();
     ImGui::SameLine();
-    if (ImGui::Button("Rescan Sounds")) {
+    if (ImGui::Button("Rescan sounds")) {
+        if (!audio_.reloadSoundFiles()) {
+            settings_.outputDeviceId = audio_.selectedDeviceId();
+            settings_.outputDeviceName = audio_.selectedDeviceName();
+            save();
+        }
         refreshSounds();
     }
 

@@ -10,7 +10,7 @@ A lightweight C++ Windows keyboard manager utilizing Dear ImGui, miniaudio, and 
 - Profile persistence, output-device routing, master volume, tray operation, and a global `Ctrl+Alt+P` kill switch.
 - Silent recovery from missing action targets. Diagnostics are written to `%LOCALAPPDATA%\KeyboardManager\KeyboardManager.log`.
 
-Configuration is stored atomically at `%LOCALAPPDATA%\KeyboardManager\config.json`. Audio files placed in the `Sounds` directory can be assigned from the bind editor.
+Configuration is stored atomically at `%LOCALAPPDATA%\KeyboardManager\config.json`. Audio files placed in the `Sounds` directory can be assigned from the bind editor. Rescanning sounds also reloads decoded audio, so replacing a file with a new version under the same name takes effect immediately.
 
 ## Build
 
@@ -26,3 +26,9 @@ CMake fetches pinned Dear ImGui, miniaudio, and nlohmann/json revisions. The rel
 ## Installer
 
 After a Release build, compile `installer\KeyboardManager.iss` with Inno Setup 6. The installer is emitted under `dist`, creates optional desktop and Start Menu shortcuts, and asks a running tray instance to shut down before an install or update replaces files.
+
+To package a Release artifact from a different build directory, override `BuildOutputDir`:
+
+```powershell
+ISCC.exe /DBuildOutputDir=..\build-mingw installer\KeyboardManager.iss
+```
