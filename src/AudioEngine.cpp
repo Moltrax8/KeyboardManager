@@ -187,6 +187,23 @@ void AudioEngine::refreshDevices() noexcept {
     impl_->selected = -1;
 }
 
+bool AudioEngine::reloadSoundFiles() noexcept {
+    const int selected = impl_->selected >= 0 &&
+                                 static_cast<std::size_t>(impl_->selected) < impl_->deviceStorage.size()
+                             ? impl_->selected
+                             : -1;
+
+    // Fire-and-forget sounds retain resource-manager references after playback. Rebuilding the
+    // engine releases those references so a replaced file is decoded again even when its path is unchanged.
+    if (impl_->initializeEngine(selected)) {
+        return true;
+    }
+    if (selected >= 0) {
+        static_cast<void>(impl_->initializeEngine(-1));
+    }
+    return false;
+}
+
 bool AudioEngine::play(const std::filesystem::path& path) noexcept {
     if (!impl_->engineReady) {
         return false;
