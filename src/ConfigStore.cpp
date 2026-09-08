@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <fstream>
 #include <unordered_set>
+#include <utility>
 
 namespace km {
 namespace {
@@ -151,6 +152,15 @@ Settings deserialize(const Json& root) {
 
 ConfigStore::ConfigStore() : path_(dataDirectory() / L"config.json") {}
 
+ConfigStore::ConfigStore(std::filesystem::path path)
+    : path_(std::move(path)), diagnosticsEnabled_(false) {}
+
+void ConfigStore::report(const std::wstring_view message) const noexcept {
+    if (diagnosticsEnabled_) {
+        logMessage(message);
+    }
+}
+
 Settings ConfigStore::load() const {
     std::ifstream stream(path_, std::ios::binary);
     if (!stream) {
@@ -161,11 +171,11 @@ Settings ConfigStore::load() const {
         stream >> root;
         return deserialize(root);
     } catch (const std::exception& error) {
-        logMessage(L"Configuration load failed: " + fromUtf8(error.what()));
+        report(L"Configuration load failed: " + fromUtf8(error.what()));
         stream.close();
         const auto corruptPath = path_.wstring() + L".corrupt";
         if (!MoveFileExW(path_.c_str(), corruptPath.c_str(), MOVEFILE_REPLACE_EXISTING)) {
-            logMessage(L"The invalid configuration could not be preserved as config.json.corrupt.");
+            report(L"The invalid configuration could not be preserved as config.json.corrupt.");
             saveEnabled_ = false;
         }
         return {};
@@ -181,28 +191,28 @@ bool ConfigStore::save(const Settings& settings) const noexcept {
         {
             std::ofstream stream(std::filesystem::path(temporary), std::ios::binary | std::ios::trunc);
             if (!stream) {
-                logMessage(L"Could not open the temporary configuration file.");
+                report(L"Could not open the temporary configuration file.");
                 return false;
             }
             stream << serialize(settings).dump(2) << '\n';
             stream.flush();
             if (!stream) {
-                logMessage(L"Could not write the temporary configuration file.");
+                report(L"Could not write the temporary configuration file.");
                 return false;
             }
         }
         if (!MoveFileExW(temporary.c_str(), path_.c_str(),
                          MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
             DeleteFileW(temporary.c_str());
-            logMessage(L"Could not atomically replace the configuration file.");
+            report(L"Could not atomically replace the configuration file.");
             return false;
         }
         return true;
     } catch (const std::exception& error) {
-        logMessage(L"Configuration save failed: " + fromUtf8(error.what()));
+        report(L"Configuration save failed: " + fromUtf8(error.what()));
         return false;
     } catch (...) {
-        logMessage(L"Configuration save failed with an unknown error.");
+        report(L"Configuration save failed with an unknown error.");
         return false;
     }
 }

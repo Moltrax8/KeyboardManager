@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(KeyboardManager VERSION 1.0.0 LANGUAGES CXX)
+project(KeyboardManager VERSION 1.0.1 LANGUAGES CXX)
 
 if(NOT WIN32)
     message(FATAL_ERROR "KeyboardManager only supports Windows.")
@@ -106,3 +106,29 @@ endif()
 install(TARGETS KeyboardManager RUNTIME DESTINATION .)
 install(DIRECTORY Sounds DESTINATION .)
 install(FILES README.md DESTINATION .)
+
+include(CTest)
+if(BUILD_TESTING)
+    add_executable(KeyboardManagerTests
+        tests/ConfigStoreTests.cpp
+        src/ConfigStore.cpp
+        src/Paths.cpp
+    )
+    target_include_directories(KeyboardManagerTests PRIVATE src)
+    target_compile_definitions(KeyboardManagerTests PRIVATE
+        NOMINMAX
+        WIN32_LEAN_AND_MEAN
+        UNICODE
+        _UNICODE
+    )
+    target_compile_options(KeyboardManagerTests PRIVATE
+        $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive- /utf-8 /EHsc>
+        $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
+    )
+    target_link_libraries(KeyboardManagerTests PRIVATE
+        nlohmann_json::nlohmann_json
+        shell32
+        ole32
+    )
+    add_test(NAME config_store COMMAND KeyboardManagerTests)
+endif()
