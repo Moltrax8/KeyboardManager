@@ -1,5 +1,12 @@
 # KeyboardManager
-A lightweight C++ Windows keyboard manager utilizing Dear ImGui, miniaudio, and the Raw Input API for anti-cheat-safe custom binds, soundboarding, and background media control.
+A lightweight C++ Windows keyboard manager utilizing Dear ImGui, miniaudio, and the Raw Input API for passive custom binds, soundboarding, and background media control.
+
+## Safety model
+
+- Physical keyboard input is observed through Raw Input and is never blocked or rewritten.
+- Action failures are logged and do not disable native keyboard input.
+- Configuration is replaced atomically and invalid JSON is preserved before defaults are used.
+- KeyboardManager does not inspect, inject into, or modify game processes. No software can guarantee acceptance by every anti-cheat product, so compatibility should be verified with each target game.
 
 ## Features
 
@@ -12,6 +19,8 @@ A lightweight C++ Windows keyboard manager utilizing Dear ImGui, miniaudio, and 
 - Silent recovery from missing action targets. Diagnostics are written to `%LOCALAPPDATA%\KeyboardManager\KeyboardManager.log`.
 
 Configuration is stored atomically at `%LOCALAPPDATA%\KeyboardManager\config.json`. Audio files placed in the `Sounds` directory can be assigned from the bind editor. Rescanning sounds also reloads decoded audio, so replacing a file with a new version under the same name takes effect immediately.
+
+Release installers create an empty user-managed `Sounds` directory. Personal or third-party audio files are not bundled with public releases.
 
 ## Build
 
@@ -43,3 +52,11 @@ To package a Release artifact from a different build directory, override `BuildO
 ```powershell
 ISCC.exe /DBuildOutputDir=..\build-mingw installer\KeyboardManager.iss
 ```
+
+## Contributing and security
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the development workflow. Report suspected vulnerabilities privately according to [`SECURITY.md`](SECURITY.md).
+
+## License
+
+KeyboardManager is available under the [MIT License](LICENSE). Third-party license notices are listed in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

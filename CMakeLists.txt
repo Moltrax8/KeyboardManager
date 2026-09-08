@@ -20,13 +20,13 @@ include(FetchContent)
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG v1.91.9b
+    GIT_TAG f5befd2d29e66809cd1110a152e375a7f1981f06 # v1.91.9b
     GIT_SHALLOW TRUE
 )
 FetchContent_Declare(
     miniaudio
     GIT_REPOSITORY https://github.com/mackron/miniaudio.git
-    GIT_TAG 0.11.23
+    GIT_TAG f40cf03f80cdb7e741d43e53b7e706e8c1394bcf # 0.11.23
     GIT_SHALLOW TRUE
     # Only the single header is consumed; skip miniaudio's unrelated examples and helper libraries.
     SOURCE_SUBDIR cmake/KeyboardManager-no-build
@@ -34,7 +34,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     nlohmann_json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG v3.11.3
+    GIT_TAG 9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03 # v3.11.3
     GIT_SHALLOW TRUE
 )
 
@@ -104,8 +104,8 @@ if(MINGW)
 endif()
 
 install(TARGETS KeyboardManager RUNTIME DESTINATION .)
-install(DIRECTORY Sounds DESTINATION .)
-install(FILES README.md DESTINATION .)
+install(DIRECTORY Sounds DESTINATION . PATTERN ".gitkeep" EXCLUDE)
+install(FILES README.md LICENSE THIRD_PARTY_NOTICES.md DESTINATION .)
 
 include(CTest)
 if(BUILD_TESTING)
