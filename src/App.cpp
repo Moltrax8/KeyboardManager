@@ -64,6 +64,32 @@ std::string actionDescription(const Action& action) {
                                    : std::string("Media: ") + item->name;
 }
 
+std::string modifierDescription(const std::uint8_t modifiers) {
+    if (modifiers == ModifierNone) {
+        return "No modifiers";
+    }
+    std::string result;
+    const auto append = [&result](const char* name) {
+        if (!result.empty()) {
+            result += " + ";
+        }
+        result += name;
+    };
+    if ((modifiers & ModifierCtrl) != 0) {
+        append("Ctrl");
+    }
+    if ((modifiers & ModifierShift) != 0) {
+        append("Shift");
+    }
+    if ((modifiers & ModifierAlt) != 0) {
+        append("Alt");
+    }
+    if ((modifiers & ModifierWin) != 0) {
+        append("Win");
+    }
+    return result;
+}
+
 } // namespace
 
 App::App(const HINSTANCE instance)
@@ -560,7 +586,9 @@ void App::renderKeyboard() {
             }
             const std::string identifier = localizedKeyName(item.key) +
                 std::format("##{}_{}", item.key.scanCode, static_cast<int>(item.key.extended));
-            if (ImGui::Button(identifier.c_str(), ImVec2(unit * item.width, keyHeight))) {
+            const bool clicked = ImGui::Button(identifier.c_str(), ImVec2(unit * item.width, keyHeight));
+            const bool hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal);
+            if (clicked) {
                 selectedKey_ = item.key;
                 selectedModifiers_ = ModifierNone;
             }
@@ -569,6 +597,21 @@ void App::renderKeyboard() {
             }
             if (active) {
                 ImGui::PopStyleColor();
+            }
+            if (active && hovered && ImGui::BeginTooltip()) {
+                ImGui::Text("Assignments for %s", localizedKeyName(item.key).c_str());
+                for (const auto& binding : activeProfile().bindings) {
+                    if (binding.key != item.key || binding.actions.empty()) {
+                        continue;
+                    }
+                    ImGui::Separator();
+                    ImGui::TextColored(ImVec4(0.30F, 0.92F, 0.76F, 1.0F), "%s",
+                                       modifierDescription(binding.modifiers).c_str());
+                    for (const auto& action : binding.actions) {
+                        ImGui::BulletText("%s", actionDescription(action).c_str());
+                    }
+                }
+                ImGui::EndTooltip();
             }
         }
     }
