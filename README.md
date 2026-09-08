@@ -57,6 +57,8 @@ ISCC.exe /DBuildOutputDir=..\build-mingw installer\KeyboardManager.iss
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the development workflow. Report suspected vulnerabilities privately according to [`SECURITY.md`](SECURITY.md).
 
+Design documents cover the planned [`virtual microphone`](docs/VIRTUAL_MICROPHONE.md), [`driver signing`](docs/DRIVER_SIGNING.md), and extensible [`action architecture`](docs/ACTIONS.md).
+
 ## License
 
 KeyboardManager is available under the [MIT License](LICENSE). Third-party license notices are listed in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
