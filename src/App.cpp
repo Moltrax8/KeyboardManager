@@ -93,7 +93,8 @@ std::string modifierDescription(const std::uint8_t modifiers) {
 } // namespace
 
 App::App(const HINSTANCE instance)
-    : instance_(instance), settings_(configStore_.load()), bindEngine_(settings_, audio_) {}
+    : instance_(instance), settings_(configStore_.load()), actionExecutor_(audio_),
+      bindEngine_(settings_, actionExecutor_) {}
 
 App::~App() {
     save();

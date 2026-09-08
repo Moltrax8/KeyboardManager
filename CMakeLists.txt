@@ -59,6 +59,7 @@ target_compile_definitions(imgui_backend PRIVATE
 )
 
 add_executable(KeyboardManager WIN32
+    src/ActionExecutor.cpp
     src/App.cpp
     src/AudioEngine.cpp
     src/BindEngine.cpp
@@ -110,7 +111,9 @@ install(FILES README.md LICENSE THIRD_PARTY_NOTICES.md DESTINATION .)
 include(CTest)
 if(BUILD_TESTING)
     add_executable(KeyboardManagerTests
+        tests/BindEngineTests.cpp
         tests/ConfigStoreTests.cpp
+        src/BindEngine.cpp
         src/ConfigStore.cpp
         src/Paths.cpp
     )
@@ -130,5 +133,5 @@ if(BUILD_TESTING)
         shell32
         ole32
     )
-    add_test(NAME config_store COMMAND KeyboardManagerTests)
+    add_test(NAME core COMMAND KeyboardManagerTests)
 endif()

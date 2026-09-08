@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <stdexcept>
 #include <string>
 
@@ -144,14 +145,53 @@ void testCorruptConfigurationIsPreserved() {
     require(store.save(settings), "saving remained disabled after successful preservation");
 }
 
+void testUnknownActionsAreNotReinterpreted() {
+    TemporaryDirectory temporary;
+    const auto path = temporary.path() / L"config.json";
+    writeFile(path, R"json({
+        "version": 1,
+        "activeProfile": "Default",
+        "profiles": [{"name": "Default", "bindings": [
+            {"scanCode": 30, "extended": 0, "modifiers": 0,
+             "actions": [{"type": "future-action", "path": "must-not-become-a-sound"}]}
+        ]}]
+    })json");
+
+    const km::Settings settings = km::ConfigStore(path).load();
+    require(settings.profiles.size() == 1 && settings.profiles.front().bindings.empty(),
+            "unknown action was reinterpreted as a supported action");
+}
+
+void testNewerConfigurationIsNotOverwritten() {
+    TemporaryDirectory temporary;
+    const auto path = temporary.path() / L"config.json";
+    constexpr char FutureConfig[] = R"json({"version": 2, "future": "preserve-me"})json";
+    writeFile(path, FutureConfig);
+
+    km::ConfigStore store(path);
+    const km::Settings settings = store.load();
+    require(settings.activeProfile == "Default", "newer configuration did not use safe defaults");
+    require(!store.save(settings), "saving was not disabled for a newer configuration");
+
+    std::ifstream stream(path, std::ios::binary);
+    const std::string preserved((std::istreambuf_iterator<char>(stream)),
+                                std::istreambuf_iterator<char>());
+    require(preserved == FutureConfig, "newer configuration was modified");
+}
+
 } // namespace
+
+void runBindEngineTests();
 
 int main() {
     try {
+        runBindEngineTests();
         testRoundTrip();
         testInvalidValuesAreSanitized();
         testCorruptConfigurationIsPreserved();
-        std::cout << "All ConfigStore tests passed.\n";
+        testUnknownActionsAreNotReinterpreted();
+        testNewerConfigurationIsNotOverwritten();
+        std::cout << "All core tests passed.\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "Test failure: " << error.what() << '\n';

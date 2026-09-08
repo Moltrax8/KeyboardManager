@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ActionExecutor.hpp"
 #include "Types.hpp"
 
 #include <cstdint>
@@ -7,8 +8,6 @@
 #include <unordered_map>
 
 namespace km {
-
-class AudioEngine;
 
 struct RawKeyEvent {
     KeyCode key;
@@ -19,7 +18,7 @@ struct RawKeyEvent {
 
 class BindEngine final {
 public:
-    BindEngine(Settings& settings, AudioEngine& audio);
+    BindEngine(Settings& settings, ActionExecutor& executor);
 
     void handle(const RawKeyEvent& event) noexcept;
     void resetDevice(std::uintptr_t device) noexcept;
@@ -33,10 +32,9 @@ private:
     [[nodiscard]] bool rightAltPressed() const noexcept;
     [[nodiscard]] bool altGrPressed() const noexcept;
     [[nodiscard]] Profile* activeProfile() noexcept;
-    void execute(const Action& action) noexcept;
 
     Settings& settings_;
-    AudioEngine& audio_;
+    ActionExecutor& executor_;
     using DeviceKeys = std::unordered_map<KeyCode, std::uint16_t, KeyCodeHash>;
     std::unordered_map<std::uintptr_t, DeviceKeys> pressed_;
     std::optional<KeyCode> lastPressedKey_;

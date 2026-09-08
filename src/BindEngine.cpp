@@ -1,13 +1,8 @@
 #include "BindEngine.hpp"
 
-#include "AudioEngine.hpp"
-#include "Paths.hpp"
-
 #include <Windows.h>
-#include <shellapi.h>
 
 #include <algorithm>
-#include <filesystem>
 
 namespace km {
 namespace {
@@ -36,7 +31,8 @@ std::uint8_t modifierForVirtualKey(const std::uint16_t virtualKey) noexcept {
 
 } // namespace
 
-BindEngine::BindEngine(Settings& settings, AudioEngine& audio) : settings_(settings), audio_(audio) {}
+BindEngine::BindEngine(Settings& settings, ActionExecutor& executor)
+    : settings_(settings), executor_(executor) {}
 
 void BindEngine::handle(const RawKeyEvent& event) noexcept {
     if (!event.keyDown) {
@@ -82,7 +78,7 @@ void BindEngine::handle(const RawKeyEvent& event) noexcept {
         return;
     }
     for (const auto& action : binding->actions) {
-        execute(action);
+        executor_.execute(action);
     }
 }
 
@@ -153,43 +149,6 @@ Profile* BindEngine::activeProfile() noexcept {
                                           return candidate.name == settings_.activeProfile;
                                       });
     return profile == settings_.profiles.end() ? nullptr : &*profile;
-}
-
-void BindEngine::execute(const Action& action) noexcept {
-    if (action.type == ActionType::PlaySound) {
-        const auto path = std::filesystem::path(action.path);
-        static_cast<void>(audio_.play(path.is_absolute() ? path : soundsDirectory() / path));
-        return;
-    }
-    if (action.type == ActionType::LaunchFile) {
-        const std::filesystem::path path(action.path);
-        std::error_code error;
-        if (!std::filesystem::exists(path, error)) {
-            logMessage(L"Launch target is missing: " + path.wstring());
-            return;
-        }
-        SHELLEXECUTEINFOW info{};
-        info.cbSize = sizeof(info);
-        info.fMask = SEE_MASK_FLAG_NO_UI | SEE_MASK_ASYNCOK;
-        info.lpVerb = L"open";
-        info.lpFile = path.c_str();
-        info.nShow = SW_SHOWNORMAL;
-        if (!ShellExecuteExW(&info)) {
-            logMessage(L"Launch action failed: " + path.wstring());
-        }
-        return;
-    }
-    if (action.type == ActionType::SendKey && action.virtualKey != 0) {
-        INPUT inputs[2]{};
-        inputs[0].type = INPUT_KEYBOARD;
-        inputs[0].ki.wVk = action.virtualKey;
-        inputs[0].ki.dwFlags = KEYEVENTF_EXTENDEDKEY;
-        inputs[1] = inputs[0];
-        inputs[1].ki.dwFlags = KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP;
-        if (SendInput(2, inputs, sizeof(INPUT)) != 2) {
-            logMessage(L"SendInput action failed.");
-        }
-    }
 }
 
 } // namespace km

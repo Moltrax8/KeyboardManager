@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ActionExecutor.hpp"
 #include "AudioEngine.hpp"
 #include "BindEngine.hpp"
 #include "ConfigStore.hpp"
@@ -75,6 +76,7 @@ private:
     ConfigStore configStore_;
     Settings settings_;
     AudioEngine audio_;
+    WindowsActionExecutor actionExecutor_;
     BindEngine bindEngine_;
     RawInputWindow rawInput_;
     std::optional<KeyCode> selectedKey_;
