@@ -560,15 +560,39 @@ void App::renderControls() {
 void App::renderKeyboard() {
     ImGui::SeparatorText("Keyboard canvas");
     ImGui::TextDisabled("Bound keys are teal. The selected key is amber.");
-    ImGui::BeginChild("KeyboardLayout", ImVec2(0, 260), ImGuiChildFlags_Borders,
-                      ImGuiWindowFlags_HorizontalScrollbar);
-    constexpr float unit = 44.0F;
-    constexpr float keyHeight = 38.0F;
-    for (const auto& row : keyboardLayout(settings_.keyboardSize)) {
+    const auto& layout = keyboardLayout(settings_.keyboardSize);
+    constexpr float canvasPadding = 10.0F;
+    constexpr float keySpacing = 4.0F;
+    constexpr float rowSpacing = 5.0F;
+    constexpr float maximumUnit = 40.0F;
+    const float borderWidth = ImGui::GetStyle().ChildBorderSize * 2.0F;
+
+    const float availableWidth = std::max(
+        1.0F, ImGui::GetContentRegionAvail().x - canvasPadding * 2.0F - borderWidth);
+    float unit = maximumUnit;
+    for (const auto& row : layout) {
+        float rowUnits = 0.0F;
+        for (const auto& item : row) {
+            rowUnits += item.width;
+        }
+        const float spacingWidth = keySpacing * static_cast<float>(row.empty() ? 0 : row.size() - 1);
+        unit = std::min(unit, std::max(1.0F, availableWidth - spacingWidth) / rowUnits);
+    }
+    const float keyHeight = std::clamp(unit * 0.86F, 22.0F, 35.0F);
+    const float canvasHeight = canvasPadding * 2.0F + borderWidth +
+        keyHeight * static_cast<float>(layout.size()) +
+        rowSpacing * static_cast<float>(layout.empty() ? 0 : layout.size() - 1);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(canvasPadding, canvasPadding));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(keySpacing, rowSpacing));
+    ImGui::BeginChild("KeyboardLayout", ImVec2(0.0F, canvasHeight),
+                      ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding,
+                      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    for (const auto& row : layout) {
         bool first = true;
         for (const auto& item : row) {
             if (!first) {
-                ImGui::SameLine(0.0F, 4.0F);
+                ImGui::SameLine(0.0F, keySpacing);
             }
             first = false;
             if (item.gap) {
@@ -616,6 +640,7 @@ void App::renderKeyboard() {
         }
     }
     ImGui::EndChild();
+    ImGui::PopStyleVar(2);
     if (const auto lastPressed = bindEngine_.lastPressedKey()) {
         ImGui::TextDisabled("Last Raw Input key: %s (scan 0x%02X%s)",
                             localizedKeyName(*lastPressed).c_str(), lastPressed->scanCode,
