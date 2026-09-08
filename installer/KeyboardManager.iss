@@ -3,6 +3,9 @@
 #define MyAppPublisher "Moltrax"
 #define MyAppExeName "KeyboardManager.exe"
 #define MyAppMutex "KeyboardManager.Singleton"
+#ifndef BuildOutputDir
+  #define BuildOutputDir "..\build\Release"
+#endif
 
 [Setup]
 AppId={{8BAA9C19-7B56-4CC0-9CC2-D734B908933A}
@@ -36,9 +39,10 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"
 
 [Files]
-Source: "..\build\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#BuildOutputDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\Sounds\*"; DestDir: "{app}\Sounds"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
+Source: "{#BuildOutputDir}\Sounds\*"; DestDir: "{app}\Sounds"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 
 [Dirs]
 Name: "{app}\Sounds"; Permissions: users-modify

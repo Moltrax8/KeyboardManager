@@ -26,3 +26,9 @@ CMake fetches pinned Dear ImGui, miniaudio, and nlohmann/json revisions. The rel
 ## Installer
 
 After a Release build, compile `installer\KeyboardManager.iss` with Inno Setup 6. The installer is emitted under `dist`, creates optional desktop and Start Menu shortcuts, and asks a running tray instance to shut down before an install or update replaces files.
+
+To package a Release artifact from a different build directory, override `BuildOutputDir`:
+
+```powershell
+ISCC.exe /DBuildOutputDir=..\build-mingw installer\KeyboardManager.iss
+```
